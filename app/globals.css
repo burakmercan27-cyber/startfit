@@ -1,0 +1,77 @@
+
+/* Layout: one phone-width app column, sticky top bar, bottom tab bar once a plan exists */
+:root{
+  --bg:#EEF0EC; --surface:#FFFFFF; --ink:#18201C; --muted:#5B655F; --line:#D6DBD5;
+  --accent:#1F5C4A; --accent-soft:#DCEBE4; --signal:#D9822B; --danger:#B3261E;
+  --font-display:"Bricolage Grotesque", "Inter", system-ui, sans-serif;
+  --font-body:"Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111613; --surface:#1A211D; --ink:#E7ECE8; --muted:#9AA59F; --line:#2D3631;
+  --accent:#6FC3A4; --accent-soft:#203a31; --signal:#E8A25A; --danger:#F2867E; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111613; --surface:#1A211D; --ink:#E7ECE8; --muted:#9AA59F; --line:#2D3631;
+  --accent:#6FC3A4; --accent-soft:#203a31; --signal:#E8A25A; --danger:#F2867E; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;padding-top:env(safe-area-inset-top,0px);background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.app{max-width:440px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;padding-block:12px 96px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;padding-block:8px 12px}
+.brand{font-family:var(--font-display);font-weight:700;font-size:20px;letter-spacing:-.01em}
+.brand span{color:var(--accent)}
+.tag{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 8px;white-space:nowrap}
+h1{font-family:var(--font-display);font-size:28px;line-height:1.15;margin:8px 0 8px;text-wrap:balance;letter-spacing:-.015em}
+h2{font-family:var(--font-display);font-size:20px;line-height:1.2;margin:0 0 4px;text-wrap:balance}
+h3{font-size:15px;margin:0}
+p{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.btn{appearance:none;border:0;border-radius:12px;padding:14px 16px;font:600 15px var(--font-body);cursor:pointer;width:100%;
+  background:var(--accent);color:var(--surface)}
+.btn.secondary{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.link{background:none;color:var(--accent);padding:8px 0;width:auto}
+.btn:focus-visible,.chip:focus-visible,.row:focus-visible,.tab:focus-visible,input:focus-visible{outline:3px solid var(--signal);outline-offset:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:10px 14px;font:500 14px var(--font-body);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.qlabel{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.progress{display:flex;gap:4px}
+.progress i{flex:1;height:4px;border-radius:2px;background:var(--line)}
+.progress i.on{background:var(--accent)}
+.err{color:var(--danger);font-size:13px;font-weight:500}
+.why{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:14px}
+.why b{color:var(--accent)}
+.row{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line);cursor:pointer;background:none;border-left:0;border-right:0;border-bottom:0;width:100%;text-align:left;color:inherit;font:inherit}
+.row:first-child{border-top:0}
+.row .grow{flex:1;min-width:0}
+.dose{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px;white-space:nowrap}
+.daytabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.daytabs .chip{white-space:nowrap}
+.list{margin:0;padding-left:20px}
+.list li{margin:2px 0}
+.setgrid{display:grid;grid-template-columns:28px 1fr 1fr 44px;gap:8px;align-items:center}
+.setgrid .h{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+input[type=number]{width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:500 15px var(--font-body);font-variant-numeric:tabular-nums}
+.check{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:18px;cursor:pointer}
+.check[aria-pressed="true"]{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat b{display:block;font-family:var(--font-display);font-size:30px;font-variant-numeric:tabular-nums;line-height:1.1}
+.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);
+  padding:8px max(16px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
+.tabs .in{max-width:440px;margin:0 auto;display:flex;gap:6px}
+.tab{flex:1;appearance:none;border:0;background:none;color:var(--muted);font:600 13px var(--font-body);padding:10px 4px;border-radius:10px;cursor:pointer}
+.tab[aria-current="page"]{color:var(--accent);background:var(--accent-soft)}
+.spinner{width:44px;height:44px;border-radius:50%;border:4px solid var(--line);border-top-color:var(--accent);animation:spin 1s linear infinite;margin:24px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.spinner{animation:none}}
+.banner{border-left:3px solid var(--signal);padding:8px 12px;background:var(--surface);border-radius:8px;font-size:13px}
+.spark{width:100%;height:48px;display:block}
+.toggle{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.toggle input{width:20px;height:20px;margin-top:2px;accent-color:var(--accent)}
+.next{display:flex;justify-content:space-between;align-items:center;gap:12px}
+
+textarea{width:100%;min-height:96px;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:400 15px var(--font-body)}
+.verdict{font-family:var(--font-display);font-size:20px}
