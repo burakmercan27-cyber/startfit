@@ -12,7 +12,7 @@ export const get = query({
 });
 
 export const save = mutation({
-  args: { deviceId: v.string(), consent: v.boolean(), answers: v.any(), plan: v.any(), shift: v.any() },
+  args: { deviceId: v.string(), consent: v.boolean(), answers: v.any(), plan: v.any(), shift: v.any(), extra: v.optional(v.any()) },
   handler: async (ctx, args) => {
     const existing = await ctx.db.query("profiles").withIndex("by_device", (q) => q.eq("deviceId", args.deviceId)).unique();
     const doc = { ...args, updatedAt: Date.now() };

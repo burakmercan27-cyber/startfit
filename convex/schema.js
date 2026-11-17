@@ -8,6 +8,7 @@ export default defineSchema({
     answers: v.any(),
     plan: v.any(),
     shift: v.any(),
+    extra: v.optional(v.any()),
     updatedAt: v.number(),
   }).index("by_device", ["deviceId"]),
   sessions: defineTable({

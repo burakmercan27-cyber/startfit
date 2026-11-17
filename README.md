@@ -1,6 +1,7 @@
 # StartFit
 
-KI-Coach für Fitness-Einsteiger: 5 Fragen, ein begründeter Trainingsplan, Training abhaken, Fortschritt sehen.
+Fitness-App für Einsteiger: 5 Fragen, ein begründeter Trainingsplan, ein Buddy, der mit jedem Training wächst, und Trainingspartner in der Nähe.
+Design- und Produktentscheidungen: siehe `DESIGN-ENTSCHEIDUNGEN.md`.
 Prototyp im Modul AI Product Development & Management (THM, WS 2026/27). Anforderungen: siehe PRD v1.
 
 ## Was die App kann
