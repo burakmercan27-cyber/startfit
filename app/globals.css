@@ -207,3 +207,12 @@ legend { padding: 0; margin-bottom: var(--s2); }
 .toast-undo { appearance: none; border: 0; background: none; color: var(--accent-soft); font-weight: 800; cursor: pointer; padding: 6px; }
 
 @media (prefers-reduced-motion: reduce) { .bob, .spinner, .typing i { animation: none; } .bar i { transition: none; } }
+
+/* Buddy-Anpassung */
+.buddy-stage { display: flex; justify-content: center; background: radial-gradient(circle at 50% 60%, var(--accent-soft), transparent 70%); border-radius: var(--r-card); padding: var(--s2) 0; }
+.swatches { display: flex; gap: var(--s3); flex-wrap: wrap; }
+.swatch-btn { appearance: none; width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); padding: 4px; cursor: pointer; }
+.swatch-btn i { display: block; width: 100%; height: 100%; border-radius: 50%; }
+.swatch-btn[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.swatch-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.avatar { overflow: hidden; }

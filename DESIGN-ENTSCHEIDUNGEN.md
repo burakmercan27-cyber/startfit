@@ -8,6 +8,7 @@ Stand: 17.11.2026 · Prototyp v3. Grundlage: Vorlesung 6 (UX Design, Make it rea
 | --- | --- |
 | **Buddy** (eigene Figur) wächst mit jedem Training: XP, Level, ab Level 3 Stirnband, ab Level 5 Schweißbänder und Stern | Owner-Vorgabe (Prinzip Pou/Tamagotchi). Motivation ist laut Interviews der Hauptgrund fürs Aufhören. |
 | Buddy baut ab: ab 8 Tagen müde, ab 15 traurig, ab 22 schlapp. Farbe, Gesicht, Haltung und Energie-Balken ändern sich | „Wenn man mehr als 1-2 Wochen pausiert, geht es dem Character sichtlich schlechter.“ Erste Woche bleibt bewusst neutral, damit normale Ruhetage nicht bestraft werden. |
+| Buddy als menschliche Comic-Figur statt Fantasie-Wesen; anpassbar: Name, Hautton (4), Frisur (4), Haarfarbe (4), Shirt (4). Demo-Personen nutzen dieselbe Figur als Profilbild | Owner-Feedback: „Buddy sollte menschlicher aussehen“. Bewusst wenige Optionen, damit das Onboarding kurz bleibt; jederzeit im Profil änderbar. Stärke zeigt sich über Statur, Stirnband, Schweißbänder und Pose. |
 | Skins nur als gesperrte Vorschau | Owner: „Später Skins, zu Beginn einfach halten.“ |
 | **Freunde**: Partner finden (sortiert nach Trainingszeit, Ort, Ziel), Anfrage senden, Chat, „Zusammen trainieren“-Einladung zu einem Training aus dem eigenen Plan | Owner-Vorgabe. Matching nutzt die Onboarding-Antworten, damit Partner zum Plan passen. |
 | **Coach** als Vorschau mit Beispielantworten, klar gekennzeichnet | Owner: KI erst später verbinden. Vorlesung: „Say it's AI“, Erwartungen ehrlich setzen. |

@@ -3,10 +3,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Q, STEPS } from "../lib/exercises";
 import { rulePlan } from "../lib/plan";
 import { fresh, loadLocal, loadRemote, saveAll, pushSession, wipeAll } from "../lib/store";
-import { COLORS, SKINS, buddyState, weekDays, xpOfSession } from "../lib/buddy";
+import { SKINS, DEFAULT_LOOK, buddyState, weekDays, xpOfSession } from "../lib/buddy";
 import { EX } from "../lib/exercises";
 import { person, REPLIES, SEED_CHATS, lastSeen } from "../lib/social";
 import Buddy from "../components/Buddy";
+import BuddyEditor from "../components/BuddyEditor";
+import { Portrait } from "../components/Buddy";
 import { Toast, TabBar, Header, Icon, Bar } from "../components/ui";
 import { Plan, Exercise, Workout, Success, Progress, nextDay, short } from "../components/Training";
 import { Community, Person, Chat } from "../components/Social";
@@ -76,14 +78,14 @@ export default function App() {
     const next = {
       ...fresh(), sample: true, consent: true, answers, plan,
       sessions: [mk(16, 0, [0, 60, 30, 35, 0]), mk(14, 1, [0, 25, 35, 30, 0]), mk(11, 2, [0, 65, 32.5, 37.5, 0]), mk(7, 0, [0, 70, 32.5, 40, 0]), mk(5, 1, [0, 30, 37.5, 32.5, 0]), mk(2, 2, [0, 70, 35, 40, 0])],
-      buddy: { name: "Fitti", color: COLORS.mint.hex, created: new Date(now - 20 * d).toISOString() },
+      buddy: { name: "Fitti", look: { skin: "#E0AC84", hair: "kurz", hairColor: "#2B1E16", shirt: "#3FAF85" }, created: new Date(now - 20 * d).toISOString() },
       social: { friends: ["lena", "tim"], requests: {}, chats, visible: true, typing: null },
     };
-    setS(next); saveAll(next); setDay(nextDay(next)); reset("home");
+    setS(next); saveAll(next); setDay(nextDay(next)); setToast(null); reset("home");
   }
 
   const app = {
-    S, mutate, go, back, day, setDay,
+    S, mutate, go, back, day, setDay, toast: (text) => setToast({ text }),
     startWorkout: (d) => go("workout", d),
     finishWorkout(session, feel) {
       const before = buddyState(S);
@@ -146,7 +148,7 @@ export default function App() {
 
   if (screen === "welcome") body = (
     <div className="stack center-text pad-top">
-      <div className="center"><Buddy color={COLORS.mint.hex} stage={2} size={170} label="Ein Buddy" /></div>
+      <div className="center"><Buddy look={DEFAULT_LOOK} stage={2} size={180} label="Ein Buddy" /></div>
       <h1 className="hero">Dein Plan. Dein Buddy. Dein Fortschritt.</h1>
       <p className="muted">Schluss mit widersprüchlichen Tipps. Beantworte 5 kurze Fragen und bekomm einen Trainingsplan, der zu deinem Alltag passt. Dein Buddy wächst mit jedem Training.</p>
       <button className="btn" onClick={() => { const base = S.sample ? fresh() : S; if (S.sample) setS(base); setDraft({ ...base.answers }); setStep(0); go(base.consent ? "onboarding" : "consent"); }}>Loslegen</button>
@@ -204,7 +206,7 @@ export default function App() {
     </div>
   );
 
-  if (screen === "meet") body = <Meet onDone={(name, color) => { mutate((s) => ({ ...s, buddy: { name, color, created: new Date().toISOString() } })); reset("home"); setToast({ text: `${name} ist bereit für dein erstes Training.` }); }} />;
+  if (screen === "meet") body = <Meet onDone={(name, look) => { mutate((s) => ({ ...s, buddy: { name, look, created: new Date().toISOString() } })); reset("home"); setToast({ text: `${name} ist bereit für dein erstes Training.` }); }} />;
 
   if (screen === "home" && S.plan && b) {
     const nd = nextDay(S), d = S.plan.days[nd], week = weekDays(S.sessions);
@@ -214,7 +216,7 @@ export default function App() {
       <div className="stack">
         <section className={`card buddy-card mood-${b.mood.key}`}>
           <div className="between"><div><p className="eyebrow">Dein Buddy</p><h1>{S.buddy.name}</h1></div><span className={`pill mood ${b.mood.key}`}>{b.mood.label}</span></div>
-          <div className="center"><Buddy color={S.buddy.color} mood={b.mood.key} stage={b.stage} size={200} label={`${S.buddy.name}, ${b.mood.label}`} /></div>
+          <div className="center"><Buddy look={S.buddy} mood={b.mood.key} stage={b.stage} size={210} label={`${S.buddy.name}, ${b.mood.label}`} /></div>
           <div className="stack-sm">
             <div className="between small"><b>Level {b.level}</b><span className="muted">{b.xp - b.cur} / {b.next - b.cur} XP</span></div>
             <Bar pct={b.pct} label="Erfahrung bis zum nächsten Level" />
@@ -238,6 +240,7 @@ export default function App() {
 
         {friend ? (
           <button className="card row-card" onClick={() => go("person", friend.id)}>
+            <Portrait look={friend.look} label={friend.name} />
             <span className="grow"><b>{friend.name}</b><span className="muted small block">{lastSeen(friend.lastDays)}. Zusammen trainieren?</span></span>
             <Icon name="chevron" size={18} />
           </button>
@@ -298,23 +301,22 @@ function Consent({ initial, err, onOk, onErr, onBack, openPrivacy }) {
 
 function Meet({ onDone }) {
   const [name, setName] = useState("Fitti");
-  const [color, setColor] = useState(COLORS.mint.hex);
+  const [look, setLook] = useState(DEFAULT_LOOK);
   const [err, setErr] = useState("");
   const n = name.trim() || "Dein Buddy";
   return (
     <div className="stack">
-      <div className="center-text"><p className="eyebrow">Dein Plan ist fertig</p><h1>Lerne deinen Buddy kennen</h1></div>
-      <div className="center"><Buddy color={color} stage={1} size={190} label={n} /></div>
-      <p className="muted center-text">Mit jedem Training sammelt {n} Erfahrung und wächst. Machst du länger als eine Woche Pause, geht es {n} sichtbar schlechter.</p>
+      <div className="center-text"><p className="eyebrow">Dein Plan ist fertig</p><h1>Gestalte deinen Buddy</h1></div>
+      <div className="buddy-stage"><Buddy look={look} stage={1} size={200} label={n} /></div>
+      <p className="muted center-text small">Mit jedem Training sammelt {n} Erfahrung und wird stärker. Machst du länger als eine Woche Pause, geht es {n} sichtbar schlechter.</p>
       <div className="stack-sm">
         <label className="label" htmlFor="buddy-name">Name</label>
         <input id="buddy-name" className="field" value={name} maxLength={16} onChange={(e) => { setName(e.target.value); setErr(""); }} />
         {err && <p className="err" role="alert">{err}</p>}
       </div>
-      <fieldset className="stack-sm"><legend className="label">Farbe</legend>
-        <div className="options">{Object.values(COLORS).map((c) => <button key={c.hex} className="option swatch" aria-pressed={color === c.hex} onClick={() => setColor(c.hex)}><i style={{ background: c.hex }} />{c.name}</button>)}</div>
-      </fieldset>
-      <button className="btn" onClick={() => (name.trim() ? onDone(name.trim(), color) : setErr("Gib deinem Buddy einen Namen."))}>Los geht's</button>
+      <BuddyEditor look={look} onChange={setLook} />
+      <p className="muted small">Du kannst das Aussehen jederzeit im Profil ändern.</p>
+      <div className="sticky-cta"><button className="btn" onClick={() => (name.trim() ? onDone(name.trim(), look) : setErr("Gib deinem Buddy einen Namen."))}>Los geht's</button></div>
     </div>
   );
 }
@@ -323,21 +325,23 @@ function Me({ app, b, onEdit, onWipe }) {
   const { S, mutate, go } = app;
   const [name, setName] = useState(S.buddy.name);
   const [confirm, setConfirm] = useState(false);
+  const [editing, setEditing] = useState(false);
   const a = S.answers;
   return (
     <div className="stack">
       <h1>Profil</h1>
       <section className="card stack">
         <div className="between"><h3>Dein Buddy</h3><span className="pill">Level {b.level}</span></div>
-        <div className="buddy-edit">
-          <Buddy color={S.buddy.color} mood={b.mood.key} stage={b.stage} size={96} animate={false} label={S.buddy.name} />
-          <div className="grow stack-sm">
-            <label className="label" htmlFor="rename">Name</label>
-            <div className="row2"><input id="rename" className="field" value={name} maxLength={16} onChange={(e) => setName(e.target.value)} />
-              <button className="btn secondary compact" disabled={!name.trim() || name.trim() === S.buddy.name} onClick={() => mutate((s) => ({ ...s, buddy: { ...s.buddy, name: name.trim() } }))}>Speichern</button></div>
-          </div>
+        <div className="buddy-stage small"><Buddy look={S.buddy} mood={b.mood.key} stage={b.stage} size={150} animate={false} label={S.buddy.name} /></div>
+        <div className="stack-sm">
+          <label className="label" htmlFor="rename">Name</label>
+          <div className="row2"><input id="rename" className="field" value={name} maxLength={16} onChange={(e) => setName(e.target.value)} />
+            <button className="btn secondary compact" disabled={!name.trim() || name.trim() === S.buddy.name} onClick={() => { mutate((s) => ({ ...s, buddy: { ...s.buddy, name: name.trim() } })); app.toast(`Name geändert: ${name.trim()}`); }}>Speichern</button></div>
         </div>
-        <div className="options">{Object.values(COLORS).map((c) => <button key={c.hex} className="option swatch" aria-pressed={S.buddy.color === c.hex} onClick={() => mutate((s) => ({ ...s, buddy: { ...s.buddy, color: c.hex } }))}><i style={{ background: c.hex }} />{c.name}</button>)}</div>
+        {editing ? (<>
+          <BuddyEditor look={S.buddy} onChange={(look) => mutate((s) => ({ ...s, buddy: { ...s.buddy, look, color: undefined } }))} />
+          <button className="btn secondary" onClick={() => setEditing(false)}>Fertig</button>
+        </>) : <button className="btn secondary" onClick={() => setEditing(true)}>Aussehen ändern</button>}
         <div><p className="label">Skins · bald verfügbar</p><div className="skins">{SKINS.map((k) => <span key={k} className="skin"><Icon name="lock" size={18} />{k}</span>)}</div></div>
       </section>
 

@@ -2,7 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import { PEOPLE, person, match, labels, lastSeen } from "../lib/social";
 import { short } from "./Training";
-import { Header, Icon, Avatar } from "./ui";
+import { Header, Icon } from "./ui";
+import { Portrait } from "./Buddy";
 
 /* ---------- Freunde & Partnersuche ---------- */
 export function Community({ app }) {
@@ -28,7 +29,7 @@ export function Community({ app }) {
             const last = msgs[msgs.length - 1];
             return (
               <button key={p.id} className="row" onClick={() => go("person", p.id)}>
-                <Avatar color={p.color} name={p.name} />
+                <Portrait look={p.look} label={p.name} />
                 <span className="grow"><b>{p.name}</b><span className="muted small block ellipsis">{last ? `${last.me ? "Du: " : ""}${last.text}` : lastSeen(p.lastDays)}</span></span>
                 <span className="pill">Lv {p.level}</span>
               </button>
@@ -50,7 +51,7 @@ export function Community({ app }) {
           return (
             <article className="card stack-sm" key={p.id}>
               <button className="person-head" onClick={() => go("person", p.id)}>
-                <Avatar color={p.color} name={p.name} size={52} />
+                <Portrait look={p.look} label={p.name} size={52} />
                 <span className="grow"><b className="lg">{p.name}, {p.age}</b><span className="muted small block">{p.place} · Lv {p.level}</span></span>
                 {m.score > 0 ? <span className="match"><b>{m.score}%</b><span className="small">passt</span></span> : <span className="muted small">Wenig gemeinsam</span>}
               </button>
@@ -82,7 +83,7 @@ export function Person({ app, id }) {
     <div className="stack">
       <Header title={p.name} onBack={back} />
       <div className="center-text stack-sm">
-        <div className="center"><Avatar color={p.color} name={p.name} size={88} /></div>
+        <div className="center"><Portrait look={p.look} label={p.name} size={88} /></div>
         <h1>{p.name}, {p.age}</h1>
         <p className="muted small">{lastSeen(p.lastDays)} · Buddy Level {p.level}</p>
       </div>

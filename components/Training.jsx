@@ -148,7 +148,7 @@ export function Success({ app, info }) {
   const { S } = app;
   return (
     <div className="stack center-text pad-top">
-      <Buddy color={S.buddy.color} mood="happy" stage={info.stage} size={190} label={`${S.buddy.name} freut sich`} />
+      <Buddy look={S.buddy} mood="happy" stage={info.stage} size={190} label={`${S.buddy.name} freut sich`} />
       <h1>{info.levelUp ? `Level ${info.level}!` : `+${info.gained} XP`}</h1>
       <p className="muted">{info.levelUp ? `${S.buddy.name} ist gewachsen. ${info.stageUp ? "Neue Ausrüstung freigeschaltet!" : "Weiter so!"}` : `${S.buddy.name} hat neue Energie. Noch ${info.toNext} XP bis Level ${info.level + 1}.`}</p>
       {info.message && <p className="help small">{info.message}</p>}
