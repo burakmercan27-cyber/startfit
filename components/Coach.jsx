@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { EX } from "../lib/exercises";
 import { candidates } from "../lib/plan";
 import { Icon } from "./ui";
+import Buddy, { Portrait } from "./Buddy";
+import { COACH } from "../lib/buddy";
 
 /* KI-Coach: im Prototyp nur als Vorschau. Antworten sind feste Beispiele, die KI wird später angebunden. */
 function examples(S) {
@@ -21,7 +23,7 @@ function examples(S) {
 export default function Coach({ app }) {
   const { S } = app;
   const ex = examples(S);
-  const [log, setLog] = useState([{ me: false, text: `Hi! Ich bin dein Coach. Ich kenne deinen Plan und helfe dir bei Fragen rund ums Training. Tipp unten auf eine Frage, um zu sehen, wie ich antworte.` }]);
+  const [log, setLog] = useState([{ me: false, text: `Hey, ich bin Toni, dein Coach! Ich kenne deinen Plan und helfe dir bei allen Fragen rund ums Training. Tipp unten auf eine Frage, dann zeig ich dir, wie ich antworte.` }]);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const end = useRef(null);
@@ -35,19 +37,22 @@ export default function Coach({ app }) {
 
   return (
     <div className="stack chat">
-      <div className="between">
-        <div><h1>Coach</h1><p className="muted small">Dein persönlicher Trainer</p></div>
-        <span className="pill soon">Vorschau</span>
-      </div>
+      <section className="card coach-head">
+        <Buddy look={COACH.look} coach stage={2} size={96} animate={false} label={COACH.name} />
+        <div className="grow stack-sm">
+          <div className="between"><h2>{COACH.name}</h2><span className="pill soon">Vorschau</span></div>
+          <p className="muted small">Dein persönlicher Trainer. Motiviert dich, erklärt Übungen und passt deinen Plan an.</p>
+        </div>
+      </section>
       <p className="help small"><Icon name="info" size={16} /> Der KI-Coach wird bald verbunden. Bis dahin siehst du hier Beispielantworten.</p>
       <div className="msgs" aria-live="polite">
-        {log.map((m, i) => (
-          <div key={i} className={`msg ${m.me ? "me" : "coach"}`}>
-            {m.text}
-            {m.example && <span className="msg-note">Beispielantwort · KI folgt bald</span>}
+        {log.map((m, i) => m.me ? <div key={i} className="msg me">{m.text}</div> : (
+          <div key={i} className="msg-row">
+            <Portrait look={COACH.look} coach size={34} label="Toni" />
+            <div className="msg coach">{m.text}{m.example && <span className="msg-note">Beispielantwort · KI folgt bald</span>}</div>
           </div>
         ))}
-        {busy && <div className="msg typing" aria-label="Coach schreibt"><i /><i /><i /></div>}
+        {busy && <div className="msg-row"><Portrait look={COACH.look} coach size={34} label="Toni" /><div className="msg typing" aria-label="Toni schreibt"><i /><i /><i /></div></div>}
         <div ref={end} />
       </div>
       <div className="chips scroll" aria-label="Beispielfragen">
@@ -55,7 +60,7 @@ export default function Coach({ app }) {
       </div>
       <form className="composer" onSubmit={(e) => { e.preventDefault(); if (!text.trim()) return; ask(text.trim(), "Freie Fragen kann ich noch nicht beantworten, die KI wird gerade angebunden. Probier bis dahin eine der Beispielfragen."); setText(""); }}>
         <label htmlFor="coach-input" className="sr-only">Frage an den Coach</label>
-        <input id="coach-input" value={text} onChange={(e) => setText(e.target.value)} placeholder="Frag deinen Coach" autoComplete="off" maxLength={500} />
+        <input id="coach-input" value={text} onChange={(e) => setText(e.target.value)} placeholder="Frag Toni" autoComplete="off" maxLength={500} />
         <button className="iconbtn accent" type="submit" aria-label="Senden" disabled={!text.trim() || busy}><Icon name="send" /></button>
       </form>
     </div>

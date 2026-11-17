@@ -1,5 +1,5 @@
 "use client";
-import { SKIN, HAIR, HAIR_COLOR, SHIRT, lookOf } from "../lib/buddy";
+import { BODY, BUILD, SKIN, HAIR, HAIR_COLOR, SHIRT, lookOf } from "../lib/buddy";
 
 function Swatches({ label, items, value, onPick }) {
   return (
@@ -16,12 +16,25 @@ function Swatches({ label, items, value, onPick }) {
   );
 }
 
-/* Wenige, klare Optionen: Hautton, Frisur, Haarfarbe, Shirt. Skins folgen später. */
+function Choice({ label, items, value, onPick }) {
+  return (
+    <fieldset className="stack-sm">
+      <legend className="label">{label}</legend>
+      <div className="segmented" role="radiogroup" style={{ gridTemplateColumns: `repeat(${items.length}, 1fr)` }}>
+        {items.map((it) => <button key={it.id} type="button" role="radio" aria-checked={value === it.id} onClick={() => onPick(it.id)}>{it.name}</button>)}
+      </div>
+    </fieldset>
+  );
+}
+
+/* Wenige, klare Optionen: Figur, Statur, Hautton, Frisur, Haarfarbe, Shirt. Skins folgen später. */
 export default function BuddyEditor({ look: lk, onChange }) {
   const look = lookOf(lk);
   const set = (k, v) => onChange({ ...look, [k]: v });
   return (
     <div className="stack">
+      <Choice label="Figur" items={BODY} value={look.body} onPick={(v) => set("body", v)} />
+      <Choice label="Statur" items={BUILD} value={look.build} onPick={(v) => set("build", v)} />
       <Swatches label="Hautton" items={SKIN} value={look.skin} onPick={(v) => set("skin", v)} />
       <fieldset className="stack-sm">
         <legend className="label">Frisur</legend>

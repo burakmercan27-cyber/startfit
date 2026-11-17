@@ -6,9 +6,9 @@ export function Privacy({ back }) {
     <div className="stack legal">
       <Header title="Datenschutz" onBack={back} />
       <h1>Datenschutzerklärung</h1>
-      <p className="help small">StartFit ist ein Studienprojekt an der THM (Modul AI Product Development &amp; Management, WS 2026/27) und kein kommerzielles Angebot.</p>
+      <p className="help small">BuddyFit ist ein Studienprojekt an der THM (Modul AI Product Development &amp; Management, WS 2026/27) und kein kommerzielles Angebot.</p>
       <h3>Wer ist verantwortlich?</h3>
-      <p>Projektgruppe StartFit, [Namen der Gruppenmitglieder], [Postanschrift], [E-Mail-Adresse].</p>
+      <p>Projektgruppe BuddyFit, [Namen der Gruppenmitglieder], [Postanschrift], [E-Mail-Adresse].</p>
       <h3>Welche Daten speichern wir?</h3>
       <ul className="bullets">
         <li>Deine Antworten aus dem Einstieg: Ziel, Erfahrung, Trainingszeit, Ort, Art der Arbeit</li>

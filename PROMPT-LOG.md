@@ -1,4 +1,4 @@
-# Prompt-Log StartFit
+# Prompt-Log BuddyFit
 
 Abgabe-Bestandteil laut Vorlesung 5. Pro Eintrag: Datum, Ziel, Prompt (gekürzt), Ergebnis, was wir danach geändert haben.
 
@@ -13,3 +13,4 @@ Abgabe-Bestandteil laut Vorlesung 5. Pro Eintrag: Datum, Ziel, Prompt (gekürzt)
 | 10.11.2026 | Prototyp v1 | „Bau einen ersten Prototypen, so wie es in den Vorlesungsfolien gefordert ist“ | Klickbare Critical Journey mit Fake-Daten (HTML) | Umzug auf Next.js, Vercel, Convex |
 | 10.11.2026 | Prototyp v2 | „GitHub ist verbunden, fahre fort“ | Next.js-App mit KI-Plan, Tipp-Check, Convex-Speicherung | Deployen, mit 5 Einsteigern testen |
 | 17.11.2026 | Prototyp v3 | „Passe den Prototyp an: Character wie Pou/Tamagotchi, Freunde und Trainingspartner, KI-Coach nur visuell. Nutze die Tipps aus Vorlesung 6.“ (+ Folien) | Buddy mit Level und Stimmung, Freunde mit Matching und Chat, Coach-Vorschau, neues Design-System, Datenschutz und Impressum | Usability-Test mit 3-5 Einsteigern, Login |
+| 17.11.2026 | Prototyp v4 | Feedback: Schieberegler für Tage und Minuten, schönere Ort-Auswahl, Figur/Körpertyp, Farben (kein Grün auf Grün, Hell/Dunkel), Freunde erinnern, Profil pausieren, Coach als Figur, „Gym Buddy“, Name BuddyFit | Alle Punkte umgesetzt | Usability-Test |

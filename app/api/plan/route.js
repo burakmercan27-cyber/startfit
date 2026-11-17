@@ -1,10 +1,10 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { EX, Q } from "../../../lib/exercises";
+import { EX, Q, validAnswer } from "../../../lib/exercises";
 import { skeleton, ruleWhy, ruleReasons, rulePlan, describeAnswers } from "../../../lib/plan";
 
 export const runtime = "nodejs";
 
-const SYSTEM = `Du bist der KI-Coach der App StartFit für Fitness-Einsteiger.
+const SYSTEM = `Du bist der KI-Coach der App BuddyFit für Fitness-Einsteiger.
 Regeln:
 - Wähle pro Slot genau eine Übung, und zwar nur eine ID aus der Liste "erlaubt" dieses Slots. Keine Übung doppelt an einem Tag.
 - Schreibe zu jeder Übung ein "why" auf Deutsch, in der Du-Form, max. 50 Wörter, ohne Fachjargon: welchen Muskel sie trainiert, warum sie zum Ziel passt und, wo sinnvoll, zum Alltag der Person (Art der Arbeit, Trainingszeit).
@@ -38,7 +38,7 @@ export async function POST(req) {
   } catch {
     return Response.json({ error: "Ungültige Anfrage." }, { status: 400 });
   }
-  const missing = Object.keys(Q).filter((k) => !a?.[k] || !(String(a[k]) in Q[k].opts));
+  const missing = Object.keys(Q).filter((k) => !validAnswer(k, a?.[k]));
   if (missing.length) return Response.json({ error: "Es fehlen Antworten.", missing }, { status: 400 });
 
   // Ohne API-Schlüssel: Regel-Logik (Prototyp-Modus)

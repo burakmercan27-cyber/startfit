@@ -1,4 +1,4 @@
-# StartFit
+# BuddyFit
 
 Fitness-App für Einsteiger: 5 Fragen, ein begründeter Trainingsplan, ein Buddy, der mit jedem Training wächst, und Trainingspartner in der Nähe.
 Design- und Produktentscheidungen: siehe `DESIGN-ENTSCHEIDUNGEN.md`.

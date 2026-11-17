@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { PEOPLE, person, match, labels, lastSeen } from "../lib/social";
+import { PEOPLE, person, match, labels, lastSeen, canNudge, nudgedToday } from "../lib/social";
 import { short } from "./Training";
 import { Header, Icon } from "./ui";
 import { Portrait } from "./Buddy";
@@ -19,7 +19,7 @@ export function Community({ app }) {
       <div><h1>Freunde</h1><p className="muted small">Trainiert zusammen, motiviert euch gegenseitig.</p></div>
       <div className="segmented" role="tablist">
         <button role="tab" aria-selected={tab === "friends"} onClick={() => setTab("friends")}>Meine Freunde{friends.length ? ` (${friends.length})` : ""}</button>
-        <button role="tab" aria-selected={tab === "find"} onClick={() => setTab("find")}>Partner finden</button>
+        <button role="tab" aria-selected={tab === "find"} onClick={() => setTab("find")}>Gym Buddys finden</button>
       </div>
 
       {tab === "friends" && (friends.length ? (
@@ -28,19 +28,24 @@ export function Community({ app }) {
             const msgs = S.social.chats[p.id] || [];
             const last = msgs[msgs.length - 1];
             return (
-              <button key={p.id} className="row" onClick={() => go("person", p.id)}>
-                <Portrait look={p.look} label={p.name} />
-                <span className="grow"><b>{p.name}</b><span className="muted small block ellipsis">{last ? `${last.me ? "Du: " : ""}${last.text}` : lastSeen(p.lastDays)}</span></span>
-                <span className="pill">Lv {p.level}</span>
-              </button>
+              <div key={p.id} className="row">
+                <button className="person-head" onClick={() => go("person", p.id)}>
+                  <Portrait look={p.look} label={p.name} />
+                  <span className="grow"><b>{p.name}</b><span className="muted small block ellipsis">{last ? `${last.me ? "Du: " : ""}${last.text}` : lastSeen(p.lastDays, p.paused)}</span></span>
+                </button>
+                {p.paused ? <span className="status away">Pausiert</span>
+                  : canNudge(p, S) ? <button className="nudge" onClick={() => app.nudge(p.id)}>Erinnern</button>
+                  : p.lastDays >= 7 ? <span className="status late">Erinnert</span>
+                  : <span className="pill">Lv {p.level}</span>}
+              </div>
             );
           })}
         </div>
       ) : (
         <div className="empty">
           <b>Noch keine Freunde.</b>
-          <p className="muted small">Finde Leute, die zur gleichen Zeit und am gleichen Ort trainieren wie du.</p>
-          <button className="btn" onClick={() => setTab("find")}>Trainingspartner finden</button>
+          <p className="muted small">Finde Gym Buddys, die zur gleichen Zeit und am gleichen Ort trainieren wie du.</p>
+          <button className="btn" onClick={() => setTab("find")}>Gym Buddys finden</button>
         </div>
       ))}
 
@@ -52,7 +57,7 @@ export function Community({ app }) {
             <article className="card stack-sm" key={p.id}>
               <button className="person-head" onClick={() => go("person", p.id)}>
                 <Portrait look={p.look} label={p.name} size={52} />
-                <span className="grow"><b className="lg">{p.name}, {p.age}</b><span className="muted small block">{p.place} · Lv {p.level}</span></span>
+                <span className="grow"><b className="lg">{p.name}, {p.age}</b><span className="muted small block">{p.place} · Lv {p.level}{p.paused ? " · pausiert" : ""}</span></span>
                 {m.score > 0 ? <span className="match"><b>{m.score}%</b><span className="small">passt</span></span> : <span className="muted small">Wenig gemeinsam</span>}
               </button>
               {m.reasons.length > 0 && <div className="chips">{m.reasons.map((r) => <span key={r} className="tagchip">{r}</span>)}</div>}
@@ -62,7 +67,7 @@ export function Community({ app }) {
             </article>
           );
         }) : <div className="empty small">Du bist mit allen Personen in deiner Nähe befreundet.</div>}
-        <p className="muted small">Demo-Profile im Prototyp. Mit Login seht ihr hier echte Nutzer aus eurer Stadt.</p>
+        <p className="muted small">Demo-Profile im Prototyp. Mit Login seht ihr hier echte Gym Buddys aus eurer Stadt.</p>
       </>)}
     </div>
   );
@@ -85,7 +90,7 @@ export function Person({ app, id }) {
       <div className="center-text stack-sm">
         <div className="center"><Portrait look={p.look} label={p.name} size={88} /></div>
         <h1>{p.name}, {p.age}</h1>
-        <p className="muted small">{lastSeen(p.lastDays)} · Buddy Level {p.level}</p>
+        <p className="muted small">{lastSeen(p.lastDays, p.paused)} · Buddy Level {p.level}</p>
       </div>
       <div className="card">
         <dl className="facts">
@@ -97,6 +102,13 @@ export function Person({ app, id }) {
       </div>
       {m.reasons.length > 0 && <div className="chips">{m.reasons.map((r) => <span key={r} className="tagchip">{r}</span>)}</div>}
 
+      {isFriend && !p.paused && p.lastDays >= 7 && (
+        <div className="card stack-sm">
+          <p className="small"><b>{p.name} war seit {p.lastDays} Tagen nicht trainieren.</b> Ein kleiner Schubs hilft beim Dranbleiben.</p>
+          <button className="btn secondary" disabled={nudgedToday(S, id)} onClick={() => app.nudge(id)}>{nudgedToday(S, id) ? "Heute schon erinnert" : `${p.name} ans Training erinnern`}</button>
+        </div>
+      )}
+      {isFriend && p.paused && <p className="help small">{p.name} hat das Profil gerade pausiert. Einladungen kommen nach der Pause wieder an.</p>}
       {isFriend ? (<>
         {!invite ? (<>
           <button className="btn" onClick={() => setInvite(true)}>Zusammen trainieren</button>
