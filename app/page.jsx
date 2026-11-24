@@ -1,10 +1,12 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Q, STEPS, answerText } from "../lib/exercises";
-import Question from "../components/Questions";
+import Question, { BodyFields } from "../components/Questions";
+import { Quests, Achievements, SplitPicker, Body } from "../components/Game";
+import { streak, LINES, MEASURE_XP, canEarnMeasureXp } from "../lib/game";
 import { rulePlan } from "../lib/plan";
 import { fresh, loadLocal, loadRemote, saveAll, pushSession, wipeAll } from "../lib/store";
-import { SKINS, DEFAULT_LOOK, PAUSE_REASONS, activePause, buddyState, weekDays, xpOfSession } from "../lib/buddy";
+import { SKINS, DEFAULT_LOOK, PAUSE_REASONS, activePause, buddyState, weekDays, xpOfSession, goldOf, levelOf } from "../lib/buddy";
 import { EX } from "../lib/exercises";
 import { person, REPLIES, SEED_CHATS, lastSeen } from "../lib/social";
 import Buddy from "../components/Buddy";
@@ -16,7 +18,7 @@ import { Community, Person, Chat } from "../components/Social";
 import Coach from "../components/Coach";
 import { Privacy, Imprint } from "../components/Legal";
 
-const TAB_OF = { home: "home", plan: "plan", coach: "coach", community: "community", me: "me", exercise: "plan", progress: "home", person: "community" };
+const TAB_OF = { home: "home", plan: "plan", coach: "coach", community: "community", me: "me", exercise: "plan", progress: "home", person: "community", achievements: "home", body: "home" };
 const NO_TABS = ["chat", "workout"];
 
 export default function App() {
@@ -28,6 +30,7 @@ export default function App() {
   const [day, setDay] = useState(0);
   const [err, setErr] = useState("");
   const [toast, setToast] = useState(null);
+  const [line, setLine] = useState("");
   const closeToast = useCallback(() => setToast(null), []);
   const ref = useRef(S);
   ref.current = S;
@@ -47,6 +50,7 @@ export default function App() {
     loadRemote().then((r) => { if (r?.plan) { setS(r); setDay(nextDay(r)); setStack((st) => (st[0].screen === "welcome" ? [{ screen: r.buddy ? "home" : "meet" }] : st)); } });
   }, []);
   useEffect(() => { window.scrollTo(0, 0); }, [screen, step, param]);
+  useEffect(() => { if (!line) return; const t = setTimeout(() => setLine(""), 3000); return () => clearTimeout(t); }, [line]);
 
   /* ---------- Aktionen ---------- */
   async function makePlan(answers, standard) {
@@ -81,12 +85,32 @@ export default function App() {
       sessions: [mk(16, 0, [0, 60, 30, 35, 0]), mk(14, 1, [0, 25, 35, 30, 0]), mk(11, 2, [0, 65, 32.5, 37.5, 0]), mk(7, 0, [0, 70, 32.5, 40, 0]), mk(5, 1, [0, 30, 37.5, 32.5, 0]), mk(2, 2, [0, 70, 35, 40, 0])],
       buddy: { name: "Fitti", look: { skin: "#E0AC84", hair: "kurz", hairColor: "#2B1E16", shirt: "#3FAF85" }, created: new Date(now - 20 * d).toISOString() },
       social: { friends: ["lena", "tim"], requests: {}, chats, visible: true, typing: null },
+      body: { consent: true, entries: [{ date: new Date(now - 28 * d).toISOString(), weight: 82, arm: 33, chest: 98 }, { date: new Date(now - 14 * d).toISOString(), weight: 81.2, arm: 33.5, chest: 99 }, { date: new Date(now - 1 * d).toISOString(), weight: 80.6, arm: 34, chest: 100 }] },
+      events: [{ type: "comeback", date: new Date(now - 16 * d).toISOString() }],
     };
     setS(next); saveAll(next); setDay(nextDay(next)); setToast(null); reset("home");
   }
 
+  const b = S.buddy ? buddyState(S) : null;
+  const addEvent = (type) => mutate((s) => ({ ...s, events: [...(s.events || []), { type, date: new Date().toISOString() }] }));
+  const levelUpToast = (gain, text) => {
+    const before = b ? b.level : 1, after = levelOf((b ? b.xp : 0) + gain).level;
+    setToast({ text: after > before ? `Level ${after}! ${S.buddy.name} ist gewachsen.` : text });
+  };
   const app = {
-    S, mutate, go, back, day, setDay, toast: (text) => setToast({ text }),
+    S, b, mutate, go, back, day, setDay,
+    claim(q) {
+      if ((S.bonus || []).some((x) => x.id === q.id)) return;
+      mutate((s) => ({ ...s, bonus: [...(s.bonus || []), { id: q.id, xp: q.xp, date: new Date().toISOString() }] }));
+      levelUpToast(q.xp, `+${q.xp} XP für ${S.buddy.name}!`);
+    },
+    changeSplit(id) { makePlan({ ...S.answers, split: id }, false); },
+    addMeasure(entry) {
+      const earn = canEarnMeasureXp(S);
+      const date = new Date().toISOString();
+      mutate((s) => ({ ...s, body: { ...s.body, entries: [...(s.body?.entries || []), { date, ...entry }] }, bonus: earn ? [...(s.bonus || []), { id: `m-${date}`, xp: MEASURE_XP, date }] : s.bonus || [] }));
+      if (earn) levelUpToast(MEASURE_XP, `Gespeichert. +${MEASURE_XP} XP!`); else setToast({ text: "Körpermaße gespeichert." });
+    }, toast: (text) => setToast({ text }),
     startWorkout: (d) => go("workout", d),
     startPause(reason, weeks) {
       const until = weeks ? new Date(Date.now() + weeks * 7 * 864e5).toISOString() : null;
@@ -99,6 +123,7 @@ export default function App() {
     },
     nudge(id) {
       const p = person(id);
+      addEvent("nudge");
       mutate((s) => ({ ...s, social: { ...s.social, nudged: { ...(s.social.nudged || {}), [id]: new Date().toISOString() } } }));
       setToast({ text: `${p.name} wurde erinnert, mal wieder zu trainieren.` });
     },
@@ -107,7 +132,8 @@ export default function App() {
       const shift = { ...S.shift };
       if (feel === "leicht") shift[session.day] = (shift[session.day] || 0) + 1;
       if (feel === "schwer") shift[session.day] = (shift[session.day] || 0) - 1;
-      const next = { ...S, sample: false, simPause: 0, shift, sessions: [...S.sessions, session], ...(activePause(S) ? { pause: null, pauseEnded: new Date().toISOString() } : {}) };
+      const comeback = activePause(S) || ["sad", "sick"].includes(before.mood.key);
+      const next = { ...S, sample: false, simPause: 0, shift, sessions: [...S.sessions, session], ...(activePause(S) ? { pause: null, pauseEnded: new Date().toISOString() } : {}), events: comeback ? [...(S.events || []), { type: "comeback", date: new Date().toISOString() }] : S.events || [] };
       setS(next); saveAll(next); pushSession(session, S.sample);
       const after = buddyState(next);
       setDay(nextDay(next));
@@ -143,7 +169,7 @@ export default function App() {
     sendMessage(id, text, invite) {
       const push = (s, m) => ({ ...s, social: { ...s.social, chats: { ...s.social.chats, [id]: [...(s.social.chats[id] || []), m] } } });
       mutate((s) => { const n = push(s, { me: true, text, ts: Date.now() }); return { ...n, social: { ...n.social, typing: id } }; });
-      if (invite) { go("chat", id); setToast({ text: `Einladung an ${person(id).name} gesendet.` }); }
+      if (invite) { addEvent("invite"); go("chat", id); setToast({ text: `Einladung an ${person(id).name} gesendet.` }); }
       setTimeout(() => {
         mutate((s) => {
           const n = (s.social.chats[id] || []).length;
@@ -159,17 +185,24 @@ export default function App() {
 
   /* ---------- Bildschirme ---------- */
   let body = null;
-  const b = S.buddy ? buddyState(S) : null;
 
   if (screen === "welcome") body = (
-    <div className="stack center-text pad-top">
-      <p className="brand">Buddy<span>Fit</span></p>
-      <div className="center"><Buddy look={DEFAULT_LOOK} stage={2} size={180} label="Ein Buddy" /></div>
-      <h1 className="hero">Dein Plan. Dein Buddy. Dein Fortschritt.</h1>
-      <p className="muted">Schluss mit widersprüchlichen Tipps. Beantworte 5 kurze Fragen und bekomm einen Trainingsplan, der zu deinem Alltag passt. Dein Buddy wächst mit jedem Training.</p>
+    <div className="stack">
+      <section className="welcome">
+        <p className="brand">Buddy<span>Fit</span></p>
+        <Buddy look={DEFAULT_LOOK} stage={2} size={190} label="Ein Buddy" />
+        <span className="platform" aria-hidden="true" />
+        <h1>Trainiere mit Plan. Und mit Buddy.</h1>
+        <p>Ein Trainingsplan, der zu deinem Alltag passt, und ein Buddy, der mit jedem Training stärker wird.</p>
+      </section>
+      <div className="stack-sm">
+        {[["Ein Plan, der sich erklärt", "Zu jeder Übung weißt du, warum sie dir hilft."], ["Dein Buddy wächst mit", "Sammle XP, steig im Level auf, schalte Belohnungen frei."], ["Gym Buddys in deiner Nähe", "Finde Leute, die zur gleichen Zeit trainieren."]].map(([t, d]) => (
+          <div key={t} className="feature"><Icon name="check" size={18} /><span><b>{t}</b><span className="muted small block">{d}</span></span></div>
+        ))}
+      </div>
       <button className="btn" onClick={() => { const base = S.sample ? fresh() : S; if (S.sample) setS(base); setDraft({ ...base.answers }); setStep(0); go(base.consent ? "onboarding" : "consent"); }}>Loslegen</button>
       <button className="btn secondary" onClick={seedSample}>Beispiel ansehen</button>
-      <p className="muted small"><button className="linkbtn small" onClick={() => go("privacy")}>Datenschutz</button> · <button className="linkbtn small" onClick={() => go("imprint")}>Impressum</button></p>
+      <p className="muted small center-text"><button className="linkbtn small" onClick={() => go("privacy")}>Datenschutz</button> · <button className="linkbtn small" onClick={() => go("imprint")}>Impressum</button></p>
     </div>
   );
 
@@ -179,18 +212,21 @@ export default function App() {
     const st = STEPS[step];
     body = (
       <div className="stack">
-        <Header title={`Frage ${step + 1} von 5`} onBack={() => (step ? (setStep(step - 1), setErr("")) : back())} />
+        <Header title={`Frage ${step + 1} von ${STEPS.length}`} onBack={() => (step ? (setStep(step - 1), setErr("")) : back())} />
         <div className="steps-bar" aria-hidden="true">{STEPS.map((_, i) => <i key={i} className={i <= step ? "on" : ""} />)}</div>
         <h1>{st.title}</h1>
         {st.keys.map((k) => <Question key={k} k={k} value={draft[k]} showError={!!err} onChange={(v) => { setDraft((d) => ({ ...d, [k]: v })); setErr(""); }} />)}
+        {st.body && err && err !== "missing" && <p className="err" role="alert">{err}</p>}
+        {st.body && <BodyFields height={draft.height} weight={draft.weight} onChange={(v) => setDraft((d) => ({ ...d, ...v }))} />}
         <div className="sticky-cta">
           <button className="btn" onClick={() => {
             const filled = { ...draft };
             st.keys.forEach((k) => { if (Q[k].range && filled[k] == null) filled[k] = Q[k].def; });
             setDraft(filled);
             if (st.keys.some((k) => !filled[k])) { setErr("missing"); return; }
-            if (step < 4) { setStep(step + 1); setErr(""); } else makePlan(filled, false);
-          }}>{step === 4 ? "Plan erstellen" : "Weiter"}</button>
+            if (st.body && ((filled.height && (filled.height < 120 || filled.height > 230)) || (filled.weight && (filled.weight < 30 || filled.weight > 250)))) { setErr("Bitte prüfe Größe (120-230 cm) und Gewicht (30-250 kg)."); return; }
+            if (step < STEPS.length - 1) { setStep(step + 1); setErr(""); } else makePlan(filled, false);
+          }}>{step === STEPS.length - 1 ? "Plan erstellen" : "Weiter"}</button>
         </div>
       </div>
     );
@@ -219,19 +255,30 @@ export default function App() {
     const nd = nextDay(S), d = S.plan.days[nd], week = weekDays(S.sessions);
     const weekCount = week.filter((w) => w.trained).length, goal = +S.answers.days;
     const friend = S.social.friends.map(person).filter((p) => p && !p.paused).sort((x, y) => x.lastDays - y.lastDays)[0];
+    const st = streak(S);
     body = (
       <div className="stack">
-        <section className={`card buddy-card mood-${b.mood.key}`}>
-          <div className="between"><div><p className="eyebrow">Dein Buddy</p><h1>{S.buddy.name}</h1></div><span className={`pill mood ${b.mood.key}`}>{b.mood.label}</span></div>
-          <div className="center"><Buddy look={S.buddy} mood={b.mood.key} reason={b.pause?.reason} stage={b.stage} size={210} label={`${S.buddy.name}, ${b.mood.label}`} /></div>
-          <div className="stack-sm">
-            <div className="between small"><b>Level {b.level}</b><span className="muted">{b.xp - b.cur} / {b.next - b.cur} XP</span></div>
-            <Bar pct={b.pct} label="Erfahrung bis zum nächsten Level" />
-            <div className="between small"><b>Energie</b><span className="muted">{b.pause ? "Pausiert, Energie bleibt erhalten" : b.days === 0 ? "Heute trainiert" : b.days === 1 ? "Gestern trainiert" : `${b.days} Tage ohne Training`}</span></div>
-            <Bar pct={b.mood.energy / 100} label="Energie" tone={b.mood.key === "happy" ? "good" : b.mood.key === "pause" ? "pause" : b.mood.key === "tired" ? "warn" : "bad"} />
+        <section className={`hero-card mood-${b.mood.key}`}>
+          <div className="between">
+            <div><p className="eyebrow on-hero">Dein Buddy</p><h1>{S.buddy.name}</h1></div>
+            <div className="hero-chips">
+              {st > 0 && <span className="chip-hero" title="Wochen in Folge mit erreichtem Ziel"><Icon name="flame" size={16} /> {st} {st === 1 ? "Woche" : "Wochen"}</span>}
+              <span className={`chip-hero mood ${b.mood.key}`}>{b.mood.label}</span>
+            </div>
           </div>
-          {b.mood.key !== "happy" && <p className="banner" role="status">{b.mood.text}</p>}
-          {b.pause && <button className="btn secondary" onClick={app.endPause}>Pause beenden</button>}
+          <button className="buddy-tap" onClick={() => setLine(LINES[b.mood.key][Math.floor(Math.random() * LINES[b.mood.key].length)])} aria-label={`${S.buddy.name} antippen`}>
+            {line && <span className="speech" role="status">{line}</span>}
+            <span className="platform" aria-hidden="true" />
+            <Buddy look={S.buddy} mood={b.mood.key} reason={b.pause?.reason} stage={b.stage} gold={goldOf(b.level)} size={210} label={`${S.buddy.name}, ${b.mood.label}`} />
+          </button>
+          <div className="stack-sm">
+            <div className="between small"><b>Level {b.level}</b><span>{b.xp - b.cur} / {b.next - b.cur} XP</span></div>
+            <Bar pct={b.pct} label="Erfahrung bis zum nächsten Level" tone="hero" />
+            <div className="between small"><b>Energie</b><span>{b.pause ? "Pausiert, Energie bleibt" : b.days === 0 ? "Heute trainiert" : b.days === 1 ? "Gestern trainiert" : `${b.days} Tage ohne Training`}</span></div>
+            <Bar pct={b.mood.energy / 100} label="Energie" tone={b.mood.key === "happy" || b.mood.key === "pause" ? "hero" : b.mood.key === "tired" ? "warn" : "bad"} />
+          </div>
+          {b.mood.key !== "happy" && <p className="hero-note" role="status">{b.mood.text}</p>}
+          {b.pause && <button className="btn on-hero" onClick={app.endPause}>Pause beenden</button>}
         </section>
 
         <section className="card stack">
@@ -239,6 +286,14 @@ export default function App() {
           <button className="btn" onClick={() => { setDay(nd); app.startWorkout(nd); }}><Icon name="play" size={18} /> Training starten</button>
           <button className="linkbtn small" onClick={() => { setDay(nd); go("plan"); }}>Übungen ansehen</button>
         </section>
+
+        <Quests app={app} />
+
+        <button className="card row-card" onClick={() => go("achievements")}>
+          <span className="medal small" aria-hidden="true">★</span>
+          <span className="grow"><b>Erfolge und Belohnungen</b><span className="muted small block">Abzeichen, Level-Belohnungen, Split-Training</span></span>
+          <Icon name="chevron" size={18} />
+        </button>
 
         <section className="card stack-sm">
           <div className="between"><b>Diese Woche</b><span className="muted small">{weekCount} von {goal} Trainings</span></div>
@@ -267,6 +322,8 @@ export default function App() {
   if (screen === "workout") body = <Workout app={app} dayIdx={param} />;
   if (screen === "success") body = <Success app={app} info={param} />;
   if (screen === "progress") body = <Progress app={app} />;
+  if (screen === "achievements" && b) body = <Achievements app={app} b={b} />;
+  if (screen === "body") body = <Body app={app} />;
   if (screen === "coach" && S.plan) body = <Coach app={app} />;
   if (screen === "community") body = <Community app={app} />;
   if (screen === "person") body = <Person app={app} id={param} />;
@@ -349,14 +406,14 @@ function Me({ app, b, onEdit, onWipe }) {
       <h1>Profil</h1>
       <section className="card stack">
         <div className="between"><h3>Dein Buddy</h3><span className="pill">Level {b.level}</span></div>
-        <div className="buddy-stage small"><Buddy look={S.buddy} mood={b.mood.key} reason={b.pause?.reason} stage={b.stage} size={150} animate={false} label={S.buddy.name} /></div>
+        <div className="buddy-stage small"><Buddy look={S.buddy} mood={b.mood.key} reason={b.pause?.reason} stage={b.stage} gold={goldOf(b.level)} size={150} animate={false} label={S.buddy.name} /></div>
         <div className="stack-sm">
           <label className="label" htmlFor="rename">Name</label>
           <div className="row2"><input id="rename" className="field" value={name} maxLength={16} onChange={(e) => setName(e.target.value)} />
             <button className="btn secondary compact" disabled={!name.trim() || name.trim() === S.buddy.name} onClick={() => { mutate((s) => ({ ...s, buddy: { ...s.buddy, name: name.trim() } })); app.toast(`Name geändert: ${name.trim()}`); }}>Speichern</button></div>
         </div>
         {editing ? (<>
-          <BuddyEditor look={S.buddy} onChange={(look) => mutate((s) => ({ ...s, buddy: { ...s.buddy, look, color: undefined } }))} />
+          <BuddyEditor look={S.buddy} level={b.level} onChange={(look) => mutate((s) => ({ ...s, buddy: { ...s.buddy, look, color: undefined } }))} />
           <button className="btn secondary" onClick={() => setEditing(false)}>Fertig</button>
         </>) : <button className="btn secondary" onClick={() => setEditing(true)}>Aussehen ändern</button>}
         <div><p className="label">Skins · bald verfügbar</p><div className="skins">{SKINS.map((k) => <span key={k} className="skin"><Icon name="lock" size={18} />{k}</span>)}</div></div>
@@ -364,7 +421,8 @@ function Me({ app, b, onEdit, onWipe }) {
 
       <section className="card stack-sm">
         <h3>Deine Angaben</h3>
-        <dl className="facts">{Object.keys(Q).map((k) => <div key={k}><dt>{Q[k].label.replace("?", "")}</dt><dd>{answerText(k, a[k])}</dd></div>)}</dl>
+        <dl className="facts">{Object.keys(Q).map((k) => <div key={k}><dt>{Q[k].label.replace("?", "")}</dt><dd>{answerText(k, a[k])}</dd></div>)}
+          {a.height ? <div><dt>Größe</dt><dd>{a.height} cm</dd></div> : null}{a.weight ? <div><dt>Gewicht (Start)</dt><dd>{a.weight} kg</dd></div> : null}</dl>
         <button className="btn secondary" onClick={onEdit}>Angaben ändern und Plan neu erstellen</button>
         <p className="muted small">Dein Trainingsverlauf und dein Buddy bleiben erhalten.</p>
       </section>
@@ -400,6 +458,8 @@ function Me({ app, b, onEdit, onWipe }) {
         <label className="toggle"><input type="checkbox" checked={S.social.visible} onChange={(e) => mutate((s) => ({ ...s, social: { ...s.social, visible: e.target.checked } }))} /><span>Andere dürfen mich als Gym Buddy finden<span className="muted small block">Sichtbar sind nur Vorname, Ziel, Trainingszeit und Ort.</span></span></label>
       </section>
 
+      <button className="card row-card" onClick={() => go("achievements")}><span className="grow"><b>Erfolge und Belohnungen</b><span className="muted small block">Level {b.level} · {streak(S)} Wochen-Serie</span></span><Icon name="chevron" size={18} /></button>
+      <button className="card row-card" onClick={() => go("body")}><span className="grow"><b>Körpermaße</b><span className="muted small block">{S.body?.consent ? `${S.body.entries.length} Einträge` : "Optional: Umfänge und Gewicht verfolgen"}</span></span><Icon name="chevron" size={18} /></button>
       <button className="card row-card" onClick={() => go("progress")}><span className="grow"><b>Fortschritt</b><span className="muted small block">{S.sessions.length} Trainings · {b.xp} XP</span></span><Icon name="chevron" size={18} /></button>
 
       <section className="card stack-sm">

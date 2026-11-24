@@ -27,8 +27,8 @@ function validate(ai, sk, a) {
     });
     return { name: d.name, items };
   });
-  const reasons = Array.isArray(ai?.reasons) && ai.reasons.length ? ai.reasons.slice(0, 5).map(String) : ruleReasons(a, sk.rest);
-  return { days, rest: sk.rest, reasons, created: new Date().toISOString(), source: "ki" };
+  const reasons = Array.isArray(ai?.reasons) && ai.reasons.length ? ai.reasons.slice(0, 5).map(String) : ruleReasons(a, sk.rest, sk.split);
+  return { days, rest: sk.rest, reasons, split: sk.split, created: new Date().toISOString(), source: "ki" };
 }
 
 export async function POST(req) {

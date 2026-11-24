@@ -4,6 +4,8 @@ import { EX, Q } from "../lib/exercises";
 import { dose } from "../lib/plan";
 import Buddy from "./Buddy";
 import { Header, Icon, Bar } from "./ui";
+import { SplitPicker } from "./Game";
+import { Portrait } from "./Buddy";
 
 export const short = (name) => name.split(" · ")[1] || name;
 export const nextDay = (S) => (S.plan ? S.sessions.length % S.plan.days.length : 0);
@@ -20,6 +22,7 @@ export function Plan({ app }) {
         <h1>{short(d.name)}</h1>
         <p className="muted small">{d.items.length} Übungen · ca. {S.answers.mins} Min. · {p.rest} Sek. Pause</p>
       </div>
+      {app.b && <SplitPicker app={app} b={app.b} />}
       <div className="chips scroll" role="tablist" aria-label="Trainingstage">
         {p.days.map((x, i) => (
           <button key={i} role="tab" className="chip" aria-selected={i === day} aria-pressed={i === day} onClick={() => setDay(i)}>
@@ -77,6 +80,9 @@ export function Workout({ app, dayIdx }) {
   const [err, setErr] = useState("");
   const [confirmAbort, setConfirmAbort] = useState(false);
   const [checkin, setCheckin] = useState(false);
+  const [cheer, setCheer] = useState("");
+  const cheers = ["Stark!", "Sauber gemacht!", "Weiter so!", "Noch einer, du schaffst das!", "Das gibt XP!"];
+  const jubel = app.b && app.b.level >= 4;
   const all = sets.flat(), doneCount = all.filter((s) => s.done).length;
   const setVal = (i, j, f, v) => setSets(sets.map((a, x) => (x !== i ? a : a.map((s, y) => (y !== j ? s : { ...s, [f]: v })))));
   const session = (feel) => {
@@ -102,6 +108,7 @@ export function Workout({ app, dayIdx }) {
     <div className="stack">
       <Header title={`Training ${dayIdx + 1}`} onBack={() => setConfirmAbort(true)} right={<span className="pill">{doneCount}/{all.length}</span>} />
       <Bar pct={all.length ? doneCount / all.length : 0} label="Erledigte Sätze" />
+      {jubel && cheer && <div className="cheer" role="status"><Portrait look={S.buddy} size={36} label={S.buddy.name} /><span><b>{S.buddy.name}:</b> {cheer}</span></div>}
       {confirmAbort && (
         <div className="card warn stack">
           <b>Training abbrechen?</b>
@@ -129,7 +136,7 @@ export function Workout({ app, dayIdx }) {
                 <input key={`r${j}`} id={`r-${i}-${j}`} type="number" inputMode="numeric" value={st.reps} placeholder={timed ? "Sek." : "Wdh."} aria-label={`${e.name}, Satz ${j + 1}, ${timed ? "Sekunden" : "Wiederholungen"}`} onChange={(ev) => setVal(i, j, "reps", ev.target.value)} />,
                 bw ? <span key={`k${j}`} className="muted small">Körpergewicht</span>
                   : <input key={`k${j}`} id={`k-${i}-${j}`} type="number" inputMode="decimal" step="0.5" value={st.kg} placeholder="kg" aria-label={`${e.name}, Satz ${j + 1}, Kilogramm`} onChange={(ev) => setVal(i, j, "kg", ev.target.value)} />,
-                <button key={`c${j}`} className="check" aria-pressed={st.done} aria-label={`${e.name}, Satz ${j + 1} erledigt`} onClick={() => { setVal(i, j, "done", !st.done); setErr(""); }}><Icon name="check" size={20} /></button>,
+                <button key={`c${j}`} className="check" aria-pressed={st.done} aria-label={`${e.name}, Satz ${j + 1} erledigt`} onClick={() => { setVal(i, j, "done", !st.done); setErr(""); if (!st.done && jubel) setCheer(cheers[(doneCount + 1) % cheers.length]); }}><Icon name="check" size={20} /></button>,
               ])}
             </div>
           </section>
@@ -193,6 +200,7 @@ export function Progress({ app }) {
         <div className="card stat"><b>{ss.length}</b><span className="muted small">Trainings</span></div>
         <div className="card stat"><b>{sets}</b><span className="muted small">Sätze</span></div>
       </div>
+      <button className="card row-card" onClick={() => go("body")}><span className="grow"><b>Körpermaße</b><span className="muted small block">{S.body?.consent ? "Umfänge und Gewicht im Verlauf" : "Optional: Bauch, Oberarm, Gewicht verfolgen"}</span></span><Icon name="chevron" size={18} /></button>
       <h3>Kraftverlauf</h3>
       {Object.keys(byEx).length ? Object.entries(byEx).map(([id, v]) => {
         const diff = v[v.length - 1] - v[0];

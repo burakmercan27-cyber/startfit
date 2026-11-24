@@ -1,6 +1,6 @@
 # Design- und Produktentscheidungen (für den Projektbericht)
 
-Stand: 17.11.2026 · Prototyp v4. App-Name: **BuddyFit**. Grundlage: Vorlesung 6 (UX Design, Make it real) und Owner-Vorgaben der Gruppe.
+Stand: 17.11.2026 · Prototyp v5. App-Name: **BuddyFit**. Grundlage: Vorlesung 6 (UX Design, Make it real) und Owner-Vorgaben der Gruppe.
 
 ## Was sich geändert hat und warum
 
@@ -17,6 +17,12 @@ Stand: 17.11.2026 · Prototyp v4. App-Name: **BuddyFit**. Grundlage: Vorlesung 6
 | **Profil pausieren** (Urlaub, Verletzung, andere Auszeit; 1, 2, 4 Wochen oder offen). Buddy baut in der Zeit nicht ab und zeigt die Pause (Sonnenbrille, Pflaster, schlafend) | Owner-Vorgabe. Der Grund bleibt privat, Freunde sehen nur „Pausiert“ (Datenminimierung). Ein Training beendet die Pause. |
 | **Coach Toni** als eigene Figur mit Kappe und Pfeife, Profilbild an jeder Nachricht | Owner-Vorgabe: Coach lebhafter machen. |
 | „Partner finden“ heißt jetzt **„Gym Buddys finden“**, App heißt **BuddyFit** | Owner-Vorgabe. Name passt zum Buddy-Konzept. |
+| **Schritt 6 „Über dich“**: Alter (Pflicht per Regler, Standard 25), Größe und Gewicht freiwillig | Alter und BMI beeinflussen den Plan: ab 50 Jahren oder BMI ab 30 Mobilität zum Start, längere Pausen, keine Ausfallschritte. Gewicht ist Startwert im Fortschritt. |
+| **Körpermaße** optional unter Fortschritt/Profil, mit eigener Einwilligung, empfohlene Maße je Ziel, +20 XP alle 2 Wochen | Nicht im Onboarding, damit es kurz bleibt. Umfänge zeigen Fortschritt besser als die Waage. Mögliche Gesundheitsdaten: freiwillig, privat, löschbar. |
+| **Split-Training** wird mit dem Level freigeschaltet: 3er (Level 3), 4er (Level 5), 5er (Level 7), jeweils mit Mindest-Trainingstagen | Owner-Vorgabe. Einsteiger starten mit Ganzkörper (sinnvoll für Anfänger), Splits sind Belohnung und Fortschritt zugleich. Für Splits zuhause ist die Übungsliste noch klein. |
+| Antworten im Onboarding **untereinander** als Karten mit kurzer Beschreibung | Owner-Vorgabe. Leichter zu lesen und anzutippen. |
+| **Grün-weißes Design**: grüne Buddy-Bühne und Startseite mit weißer Schrift, weiße Karten mit leichtem Schatten | Owner-Vorgabe „Hauptfarben Grün und Weiß, hochwertiger“. Weiterhin kein grüner Text auf hellgrünem Grund. |
+| **Gamification-Ausbau**: Wochen-Quests mit XP zum Abholen, Wochen-Serie, 10 Abzeichen, Belohnungspfad (L2 Shirtfarben, L3 Stirnband + 3er-Split, L4 Buddy-Jubel im Training, L5 Schweißbänder + 4er-Split, L7 Goldausrüstung + 5er-Split, L10 Skins), Buddy antippen für Sprüche | Owner-Vorgabe: Fokus auf Buddy und Gamification. Quests belohnen genau das Verhalten, das im Problem fehlt (dranbleiben, steigern, zusammen trainieren). |
 | Skins nur als gesperrte Vorschau | Owner: „Später Skins, zu Beginn einfach halten.“ |
 | **Freunde**: Partner finden (sortiert nach Trainingszeit, Ort, Ziel), Anfrage senden, Chat, „Zusammen trainieren“-Einladung zu einem Training aus dem eigenen Plan | Owner-Vorgabe. Matching nutzt die Onboarding-Antworten, damit Partner zum Plan passen. |
 | **Coach** als Vorschau mit Beispielantworten, klar gekennzeichnet | Owner: KI erst später verbinden. Vorlesung: „Say it's AI“, Erwartungen ehrlich setzen. |

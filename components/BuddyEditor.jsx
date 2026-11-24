@@ -1,15 +1,17 @@
 "use client";
 import { BODY, BUILD, SKIN, HAIR, HAIR_COLOR, SHIRT, lookOf } from "../lib/buddy";
 
-function Swatches({ label, items, value, onPick }) {
+function Swatches({ label, items, value, onPick, level = 99 }) {
   return (
     <fieldset className="stack-sm">
       <legend className="label">{label}</legend>
       <div className="swatches">
         {items.map((it) => (
-          <button key={it.id} type="button" className="swatch-btn" aria-pressed={value === it.hex} aria-label={`${label}: ${it.name}`} title={it.name} onClick={() => onPick(it.hex)}>
-            <i style={{ background: it.hex }} />
-          </button>
+          it.level && level < it.level
+            ? <span key={it.id} className="swatch-btn locked" title={`${it.name}: ab Level ${it.level}`} aria-label={`${label}: ${it.name}, ab Level ${it.level}`}><i style={{ background: it.hex }} /><b>L{it.level}</b></span>
+            : <button key={it.id} type="button" className="swatch-btn" aria-pressed={value === it.hex} aria-label={`${label}: ${it.name}`} title={it.name} onClick={() => onPick(it.hex)}>
+                <i style={{ background: it.hex }} />
+              </button>
         ))}
       </div>
     </fieldset>
@@ -28,7 +30,7 @@ function Choice({ label, items, value, onPick }) {
 }
 
 /* Wenige, klare Optionen: Figur, Statur, Hautton, Frisur, Haarfarbe, Shirt. Skins folgen später. */
-export default function BuddyEditor({ look: lk, onChange }) {
+export default function BuddyEditor({ look: lk, onChange, level = 1 }) {
   const look = lookOf(lk);
   const set = (k, v) => onChange({ ...look, [k]: v });
   return (
@@ -43,7 +45,7 @@ export default function BuddyEditor({ look: lk, onChange }) {
         </div>
       </fieldset>
       {look.hair !== "glatze" && <Swatches label="Haarfarbe" items={HAIR_COLOR} value={look.hairColor} onPick={(v) => set("hairColor", v)} />}
-      <Swatches label="Shirt" items={SHIRT} value={look.shirt} onPick={(v) => set("shirt", v)} />
+      <Swatches label="Shirt" items={SHIRT} value={look.shirt} level={level} onPick={(v) => set("shirt", v)} />
     </div>
   );
 }

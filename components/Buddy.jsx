@@ -86,7 +86,7 @@ function Face({ mood, reason, skinDark, female }) {
   </>);
 }
 
-function Arm({ side, pose, sx, sy, w, stage, skin, shirt, bandage }) {
+function Arm({ side, pose, sx, sy, w, stage, skin, shirt, bandage, band = BAND }) {
   const s = side === "l" ? -1 : 1;
   const [e, h] = {
     rest: [[sx + s * 9, sy + 22], [sx + s * 12, sy + 44]],
@@ -101,14 +101,15 @@ function Arm({ side, pose, sx, sy, w, stage, skin, shirt, bandage }) {
     <path d={`M${sx} ${sy}L${e[0]} ${e[1]}L${h[0]} ${h[1]}`} fill="none" stroke={skin} strokeWidth={w} strokeLinecap="round" strokeLinejoin="round" />
     {pose === "flex" && <circle cx={(sx + e[0]) / 2 + s} cy={(sy + e[1]) / 2 - 6} r={w * 0.55} fill={skin} />}
     <path d={`M${sx} ${sy}L${sleeve[0]} ${sleeve[1]}`} stroke={shirt} strokeWidth={w + 5} strokeLinecap="round" />
-    {stage === 3 && !bandage && <circle cx={wb[0]} cy={wb[1]} r={w * 0.62} fill={BAND} />}
+    {stage === 3 && !bandage && <circle cx={wb[0]} cy={wb[1]} r={w * 0.62} fill={band} />}
     {bandage && <path d={`M${e[0]} ${e[1]}L${mid[0]} ${mid[1]}`} stroke="#fff" strokeWidth={w + 3} strokeLinecap="round" opacity=".95" />}
     <circle cx={h[0]} cy={h[1]} r={w * 0.55} fill={skin} />
   </g>);
 }
 
-export default function Buddy({ look: lk, mood = "happy", reason, stage = 1, size = 180, animate = true, label, headOnly = false, coach = false }) {
+export default function Buddy({ look: lk, mood = "happy", reason, stage = 1, gold = false, size = 180, animate = true, label, headOnly = false, coach = false }) {
   const look = lookOf(lk);
+  const band = gold ? "#E2B33C" : BAND;
   const female = look.body === "w";
   const skin = mood === "sick" ? mix(look.skin, "#A9C39B", 0.35) : mood === "sad" ? mix(look.skin, "#B9B9B9", 0.15) : look.skin;
   const skinDark = mix(skin, INK, 0.3);
@@ -135,8 +136,8 @@ export default function Buddy({ look: lk, mood = "happy", reason, stage = 1, siz
         <path d="M62 56Q100 48 150 58Q150 64 136 62Q100 56 64 62Z" fill="#B83A2F" />
         <circle cx="100" cy="27" r="3" fill="#B83A2F" />
       </>) : stage >= 2 && !(mood === "pause" && reason === "urlaub") && (<>
-        <path d="M65 56Q100 40 135 56L135 64Q100 48 65 64Z" fill={BAND} />
-        <path d="M133 57l14-6l-1 12z" fill={BAND} />
+        <path d="M65 56Q100 40 135 56L135 64Q100 48 65 64Z" fill={band} />
+        <path d="M133 57l14-6l-1 12z" fill={band} />
       </>)}
       {mood === "pause" && reason === "verletzung" && <g transform="rotate(-20 118 50)"><rect x="108" y="46" width="20" height="8" rx="3" fill="#F3D9B8" stroke="#D9B98F" /><path d="M116 48v4M120 48v4" stroke="#D9B98F" strokeWidth="1.2" /></g>}
       <Face mood={mood} reason={reason} skinDark={skinDark} female={female} />
@@ -159,8 +160,8 @@ export default function Buddy({ look: lk, mood = "happy", reason, stage = 1, siz
       <g transform={droop ? "translate(0 4)" : undefined}>
         {!female && <rect x={100 - tw / 2 + 4} y="148" width={tw - 8} height="22" rx="6" fill={PANTS} />}
         {female && <rect x={100 - tw / 2 + 6} y="146" width={tw - 12} height="14" rx="6" fill={PANTS} />}
-        <Arm side="l" pose={pose === "wave" ? "rest" : pose} sx={100 - shoulder} sy={sy} w={armW} stage={stage} skin={skin} shirt={shirt} />
-        <Arm side="r" pose={pose} sx={100 + shoulder} sy={sy} w={armW} stage={stage} skin={skin} shirt={shirt} bandage={mood === "pause" && reason === "verletzung"} />
+        <Arm side="l" pose={pose === "wave" ? "rest" : pose} sx={100 - shoulder} sy={sy} w={armW} stage={stage} skin={skin} shirt={shirt} band={band} />
+        <Arm side="r" pose={pose} sx={100 + shoulder} sy={sy} w={armW} stage={stage} skin={skin} shirt={shirt} bandage={mood === "pause" && reason === "verletzung"} band={band} />
         {female ? <path d={torso} fill={shirt} /> : <rect x={100 - tw / 2} y="104" width={tw} height="52" rx={look.build === "kraeftig" ? 22 : 16} fill={shirt} />}
         <path d="M92 104q8 8 16 0" fill="none" stroke={mix(shirt, INK, 0.25)} strokeWidth="3" strokeLinecap="round" />
         {coach && (<><path d="M93 106L100 132L107 106" fill="none" stroke="#F4F4F4" strokeWidth="2" /><rect x="95" y="131" width="12" height="8" rx="3" fill="#C9CED1" stroke="#8E979B" /></>)}
